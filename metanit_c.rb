@@ -36,14 +36,14 @@ def scrape_and_convert(url)
     html_content = URI.open(url).read
     page = Nokogiri::HTML(html_content)
 
-    page.css('li > a').each do |link|
+    page.css('li > p > a').each do |link|
       article_url = $site + link['href']
       article_title = link.text.strip
-      article_name = article_url.split('/').last.split('.').first
+      article_name = article_url.split('/').last
 
       html_article_content = URI.open(article_url).read
       article_page = Nokogiri::HTML(html_article_content)
-      article_page_clear = article_page.css('.article')
+      article_page_clear = article_page.css('.innercontainer')
 
       puts "Scraping URL: #{article_url}"
 
@@ -58,7 +58,7 @@ def scrape_and_convert(url)
         download_file(img_url, image_path)
       end
 
-      # puts "Article '#{article_title}' has been scraped and converted to Markdown."
+      puts "Article '#{article_title}' has been scraped and converted to Markdown."
     end
   rescue StandardError => e
     puts "An error occurred: #{e.message}"
@@ -67,29 +67,34 @@ end
 
 def generate_markdown(article_page)
   content = ""
-
-  article_page.css('p, h1, h2, img, code').each do |element|
+  
+  article_page.css('p, h1, h2, div.container, img').each do |element|
+    
     if element.name == 'p'
-      content += "#{element.text.strip}\n\n"
+      content += "#{element.text.strip}\n"
     elsif element.name == 'h1'
       content += "# #{element.text.strip}\n\n"
     elsif element.name == 'h2'
       content += "## #{element.text.strip}\n\n"
-    elsif element.name == 'code'
-      # puts "#{element.text}\n"
-      content += "> #{element.text}\n\n"
+    elsif element.name == 'div' && element['class'].include?('container')
+      puts "Processing: #{element.name} #{element['class']}"
+      content += "```\n"
+      element.css('div.line').each do |line_code|
+        content += "#{line_code.text.strip}\n"
+      end
+      content += "```\n\n"
     elsif element.name == 'img'
       img_url = $site + element['src']
       image_name = img_url.split('/').last
-      content += "![#{image_name}](images/#{image_name})\n\n"
+      content += "![#{image_name}](../images/#{image_name})\n\n"
     end
   end
-
+  
   return content
 end
 
-$site = 'https://learnc.info'
-url = $site + '/c/'
+$site = 'https://metanit.com/c/tutorial/'
+url = $site + ''
 
 scrape_and_convert(url)
 
