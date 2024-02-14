@@ -68,16 +68,16 @@ end
 def generate_markdown(article_page)
   content = ""
 
-  article_page.css('p, h1, h2, img, .notranslate .container .code').each do |element|
+  article_page.css('p, h1, h2, img, code').each do |element|
     if element.name == 'p'
       content += "#{element.text.strip}\n\n"
     elsif element.name == 'h1'
       content += "# #{element.text.strip}\n\n"
     elsif element.name == 'h2'
       content += "## #{element.text.strip}\n\n"
-    elsif element.name == '.code > .container'
-      puts "#{element.text.strip}"
-      content += "```\n#{element.text.strip}\n```\n\n"
+    elsif element.name == 'code'
+      # puts "#{element.text}\n"
+      content += "> #{element.text}\n\n"
     elsif element.name == 'img'
       img_url = $site + element['src']
       image_name = img_url.split('/').last
