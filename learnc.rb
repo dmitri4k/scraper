@@ -68,7 +68,7 @@ end
 def generate_markdown(article_page)
   content = ""
   
-  article_page.css('p, h1, h2, div.notranslate, img').each do |element|
+  article_page.css('p, h1, h2, pre, img').each do |element|
     
     if element.name == 'p'
       content += "#{element.text.strip}\n\n"
@@ -76,17 +76,14 @@ def generate_markdown(article_page)
       content += "# #{element.text.strip}\n\n"
     elsif element.name == 'h2'
       content += "## #{element.text.strip}\n\n"
-    elsif element.name == 'div' && element['class'].include?('notranslate')
-      puts "Processing: #{element.name} #{element['class']}"
-      content += "```\n"
-      element.css('.line code').each do |line_code|
-        content += "#{line_code.text.strip}\n"
-      end
-      content += "```\n\n"
+    elsif element.name == 'pre'
+      content += "```\n#{element.text.strip}\n```\n\n"
     elsif element.name == 'img'
       img_url = $site + element['src']
       image_name = img_url.split('/').last
-      content += "![#{image_name}](../images/#{image_name})\n\n"
+      if image_name != 'mail.png'
+        content += "![#{image_name}](../images/#{image_name})\n\n"
+      end
     end
   end
   
